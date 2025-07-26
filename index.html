@@ -4,83 +4,190 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Analisis Peperiksaan</title>
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS CDN for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN -->
+    <!-- Chart.js CDN for creating interactive charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Custom styles untuk memastikan latar belakang gelap yang konsisten */
+        /* Custom styles to ensure a consistent dark background across the application */
         body {
-            background-color: #111827; /* bg-gray-900 */
+            background-color: #111827; /* Tailwind's bg-gray-900 equivalent */
+            font-family: 'Inter', sans-serif; /* Using Inter font for a modern look */
+        }
+        /* Styling for scrollbars to match the dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563; /* bg-gray-600 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* bg-gray-500 */
+        }
+        /* Custom styles for active tab button */
+        .tab-button.active {
+            @apply bg-blue-600 text-white;
         }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
 
-    <div id="loader" class="flex items-center justify-center h-screen">
+    <!-- Loader component displayed while data is being fetched and processed -->
+    <div id="loader" class="flex flex-col items-center justify-center h-screen">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
         <p class="text-white text-lg">Memuatkan data dashboard...</p>
     </div>
 
-    <div id="error-message" class="hidden flex items-center justify-center h-screen">
-        <p class="text-red-400 p-8"></p>
+    <!-- Error message component, hidden by default, shown if data loading fails -->
+    <div id="error-message" class="hidden flex flex-col items-center justify-center h-screen bg-red-900/20 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-red-400 text-center p-8 text-lg font-medium"></p>
+        <p class="text-gray-400 text-sm">Sila cuba muat semula halaman.</p>
     </div>
 
-    <main id="dashboard-content" class="max-w-7xl mx-auto hidden">
-        <header class="mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Dashboard Analisis Peperiksaan</h1>
+    <!-- Main dashboard content, hidden until data is loaded -->
+    <main id="dashboard-content" class="max-w-7xl mx-auto hidden bg-gray-800 rounded-xl shadow-2xl p-6 sm:p-8 lg:p-10">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-2">Dashboard Analisis Peperiksaan</h1>
             <p class="text-lg text-gray-400">Analisis Gred Purata Mata Pelajaran (GPMP) mengikut Tarikh, Kelas dan Subjek.</p>
         </header>
 
-        <!-- Filters Section -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <!-- Date Filter -->
-            <div>
-                <label for="tarikh-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh:</label>
-                <select id="tarikh-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap justify-center gap-2 mb-8 border-b border-gray-700 pb-4">
+            <button id="tab-main-analysis" class="tab-button active px-5 py-2 rounded-lg font-medium text-sm transition duration-200 ease-in-out bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Analisis Utama</button>
+            <button id="tab-overall-comparison" class="tab-button px-5 py-2 rounded-lg font-medium text-sm transition duration-200 ease-in-out bg-gray-700 text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Perbandingan Keseluruhan</button>
+        </div>
+
+        <!-- Tab Content Containers -->
+        <div id="main-analysis-tab-content" class="tab-content">
+            <!-- Filters Section for selecting date, class, and subject -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Date Filter -->
+                <div>
+                    <label for="tarikh-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh:</label>
+                    <select id="tarikh-select" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out shadow-sm"></select>
+                </div>
+                <!-- Class Filter -->
+                <div>
+                    <label for="kelas-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas:</label>
+                    <select id="kelas-select" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out shadow-sm" disabled></select>
+                </div>
+                <!-- Subject Filter -->
+                <div>
+                    <label for="subjek-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Mata Pelajaran:</label>
+                    <select id="subjek-select" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out shadow-sm" disabled></select>
+                </div>
             </div>
-            <!-- Class Filter -->
-            <div>
-                <label for="kelas-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas:</label>
-                <select id="kelas-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition" disabled></select>
-            </div>
-            <!-- Subject Filter -->
-            <div>
-                <label for="subjek-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Mata Pelajaran:</label>
-                <select id="subjek-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition" disabled></select>
+            <!-- Container where the analysis content (tables, charts) will be dynamically inserted -->
+            <div id="analysis-container">
+                <!-- Content will be dynamically inserted here by JavaScript -->
             </div>
         </div>
 
-        <div id="analysis-container">
-            <!-- Content will be dynamically inserted here -->
+        <!-- Overall Comparison Tab Content -->
+        <div id="overall-comparison-tab-content" class="tab-content hidden">
+            <h2 class="text-2xl font-semibold text-white mb-4">Perbandingan Keseluruhan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Pilihan Pertama -->
+                <div class="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Pilihan Pertama</h3>
+                    <div>
+                        <label for="comp-overall-tarikh-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh 1:</label>
+                        <select id="comp-overall-tarikh-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-overall-kelas-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas 1:</label>
+                        <select id="comp-overall-kelas-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                </div>
+                <!-- Pilihan Kedua -->
+                <div class="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Pilihan Kedua</h3>
+                    <div>
+                        <label for="comp-overall-tarikh-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh 2:</label>
+                        <select id="comp-overall-tarikh-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-overall-kelas-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas 2:</label>
+                        <select id="comp-overall-kelas-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="overall-comparison-content-container">
+                <!-- Comparison table and charts will be dynamically inserted here -->
+            </div>
         </div>
     </main>
 
     <script type="module">
         // --- CONSTANTS ---
+        // List of subjects to be analyzed
         const MATA_PELAJARAN = ['BC', 'BM', 'BI', 'MT', 'SN', 'PM/PAI', 'SEJ', 'PSV', 'MZ', 'PJ', 'PK', 'RBT'];
+        // Mapping of grades to their respective colors for consistent visualization
         const WARNA_GRED = { A: '#0284c7', B: '#059669', C: '#f59e0b', D: '#ef4444', E: '#8b5cf6', F: '#71717a' };
+        // URL of the Google Sheet CSV export. This sheet contains the raw examination data.
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6N1ia0ISmQ3AtJq7mJNV7sHZLEfmaruSjP6ZCw8J7xF_JlvSbVa1HeK5dNiq5FaPWZrcWwARQyzLj/pub?output=csv';
 
         // --- GLOBAL STATE ---
+        // `dataAnalisis` will store processed and aggregated data for display.
         let dataAnalisis = null;
+        // `dataMentah` will store the raw parsed data from the CSV.
         let dataMentah = null;
+        // `chartInstances` keeps track of Chart.js instances to destroy them before re-rendering.
         let chartInstances = {
             bar: null,
-            pie: null
+            pie: null,
+            overallComparisonGpmp: null // Only overall comparison chart instance remaining
         };
+        // Keeps track of the currently active tab
+        let currentTab = 'main-analysis';
         
         // --- DOM ELEMENTS ---
+        // References to key HTML elements for manipulation
         const loader = document.getElementById('loader');
         const errorMessage = document.getElementById('error-message');
         const dashboardContent = document.getElementById('dashboard-content');
         const analysisContainer = document.getElementById('analysis-container');
+
+        // Main Analysis Tab Elements
         const tarikhSelect = document.getElementById('tarikh-select');
         const kelasSelect = document.getElementById('kelas-select');
         const subjekSelect = document.getElementById('subjek-select');
-        
+        const mainAnalysisTabContent = document.getElementById('main-analysis-tab-content');
+
+        // Overall Comparison Tab Elements
+        const tabOverallComparison = document.getElementById('tab-overall-comparison');
+        const overallComparisonTabContent = document.getElementById('overall-comparison-tab-content');
+        const compOverallTarikh1Select = document.getElementById('comp-overall-tarikh-1-select');
+        const compOverallKelas1Select = document.getElementById('comp-overall-kelas-1-select');
+        const compOverallTarikh2Select = document.getElementById('comp-overall-tarikh-2-select');
+        const compOverallKelas2Select = document.getElementById('comp-overall-kelas-2-select');
+        const overallComparisonContentContainer = document.getElementById('overall-comparison-content-container');
+
+        // Tab Buttons
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabMainAnalysis = document.getElementById('tab-main-analysis');
+        // Removed: tabSubjectComparison, tabDateComparison, tabClassComparison
+
         // --- UTILITY FUNCTIONS ---
+        /**
+         * Determines the grade and its numerical value based on a given mark.
+         * GPMP (Gred Purata Mata Pelajaran) uses a numerical scale where 1 is A and 6 is F.
+         * @param {string|number} markah - The raw score/mark.
+         * @returns {{gred: string, nilai: number}} An object containing the grade letter and its numerical value.
+         */
         const dapatkanGred = (markah) => {
             const skor = parseInt(markah, 10);
+            // Handle invalid or non-numeric scores
             if (isNaN(skor) || skor < 0) return { gred: 'F', nilai: 6 };
             if (skor >= 82) return { gred: 'A', nilai: 1 };
             if (skor >= 66) return { gred: 'B', nilai: 2 };
@@ -90,20 +197,66 @@
             return { gred: 'F', nilai: 6 };
         };
 
+        /**
+         * Displays an error message and hides the loader and dashboard content.
+         * @param {string} msg - The error message to display.
+         */
         const showError = (msg) => {
             loader.classList.add('hidden');
             errorMessage.querySelector('p').textContent = msg;
             errorMessage.classList.remove('hidden');
         };
 
-        // --- RENDER FUNCTIONS ---
-        const renderFilters = () => {
-            const senaraiTarikh = Object.keys(dataAnalisis).sort();
-            tarikhSelect.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
-            
-            updateKelasFilter();
+        /**
+         * Shows the content of the selected tab and hides others.
+         * Updates the active state of tab buttons.
+         * @param {string} tabId - The ID of the tab content to show (e.g., 'main-analysis').
+         */
+        const showTab = (tabId) => {
+            currentTab = tabId;
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            // Remove active class from all tab buttons
+            tabButtons.forEach(button => {
+                button.classList.remove('active', 'bg-blue-600', 'text-white');
+                button.classList.add('bg-gray-700', 'text-gray-300');
+            });
+
+            // Show the selected tab content and set active button style
+            document.getElementById(`${tabId}-tab-content`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('active', 'bg-blue-600', 'text-white');
+            document.getElementById(`tab-${tabId}`).classList.remove('bg-gray-700', 'text-gray-300');
+
+            // Re-render the dashboard based on the newly active tab
+            renderDashboard();
         };
 
+        // --- RENDER FUNCTIONS ---
+        /**
+         * Populates the date filter dropdowns with available dates from the `dataAnalisis`.
+         * Then, it triggers the update for the class filter.
+         */
+        const renderFilters = () => {
+            const senaraiTarikh = Object.keys(dataAnalisis).sort();
+            const senaraiKelas = Object.keys(dataAnalisis[senaraiTarikh[0]] || {}).sort(); // Get classes from the first date
+
+            // Main Analysis Tab Filters
+            tarikhSelect.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
+            updateKelasFilter(); // Update class filter for main analysis
+
+            // Overall Comparison
+            compOverallTarikh1Select.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
+            compOverallKelas1Select.innerHTML = senaraiKelas.map(k => `<option value="${k}">${k}</option>`).join('');
+            compOverallTarikh2Select.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
+            compOverallKelas2Select.innerHTML = senaraiKelas.map(k => `<option value="${k}">${k}</option>`).join('');
+        };
+
+        /**
+         * Updates the class filter dropdown based on the currently selected date in the main analysis tab.
+         * If no classes are available for the selected date, disables the class and subject filters.
+         */
         const updateKelasFilter = () => {
             const tarikhDipilih = tarikhSelect.value;
             const senaraiKelas = Object.keys(dataAnalisis[tarikhDipilih] || {}).sort();
@@ -120,37 +273,72 @@
             }
         };
 
+        /**
+         * Populates the subject filter dropdown with all predefined subjects,
+         * including an option for "All Subjects" for the main analysis tab.
+         */
         const updateSubjekFilter = () => {
             subjekSelect.innerHTML = `<option value="Semua">Semua Mata Pelajaran</option>` + MATA_PELAJARAN.map(s => `<option value="${s}">${s}</option>`).join('');
             subjekSelect.disabled = false;
         };
         
+        /**
+         * Main function to render the dashboard content based on selected filters and the active tab.
+         * It acts as a dispatcher to call the appropriate rendering function for the current tab.
+         */
         const renderDashboard = () => {
+            // Destroy all chart instances before rendering new content
+            Object.values(chartInstances).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+
             const tarikh = tarikhSelect.value;
             const kelas = kelasSelect.value;
             const subjek = subjekSelect.value;
 
-            if (!tarikh || !kelas) {
-                analysisContainer.innerHTML = '';
-                return;
-            }
-            
-            const dataPaparan = dataAnalisis[tarikh][kelas];
-            const dataMurid = dataMentah[tarikh][kelas].murid;
+            if (!dataAnalisis) return; // Ensure data is loaded
 
-            if (subjek === 'Semua') {
-                renderAllSubjectsView(dataPaparan);
-            } else {
-                renderSingleSubjectView(dataPaparan, dataMurid, subjek);
+            switch (currentTab) {
+                case 'main-analysis':
+                    if (!tarikh || !kelas) {
+                        analysisContainer.innerHTML = '<p class="text-gray-400 text-center">Sila pilih tarikh dan kelas untuk melihat analisis.</p>';
+                        return;
+                    }
+                    const dataPaparan = dataAnalisis[tarikh][kelas];
+                    const dataMurid = dataMentah[tarikh][kelas].murid;
+                    if (subjek === 'Semua') {
+                        renderAllSubjectsView(dataPaparan);
+                    } else {
+                        renderSingleSubjectView(dataPaparan, dataMurid, subjek);
+                    }
+                    break;
+                case 'overall-comparison':
+                    renderOverallComparisonView();
+                    break;
+                default:
+                    break;
             }
         };
 
+        /**
+         * Renders the "All Subjects" view for the main analysis tab, displaying a summary table of GPMP and grade counts
+         * for all subjects, along with a bar chart of GPMP values.
+         * @param {object} data - The analyzed data for the selected date and class.
+         */
         const renderAllSubjectsView = (data) => {
+            // Calculate dynamic height for the bar chart container, allowing Chart.js to scale within it
+            // A base height plus a factor for each subject to ensure all labels are visible without internal scrolling
+            const baseHeight = 200; // Minimum height for the chart area
+            const heightPerSubject = 30; // Approximate height needed per subject bar (including padding)
+            const calculatedMaxHeight = baseHeight + (MATA_PELAJARAN.length * heightPerSubject);
+
+            // Generate table rows for each subject
             const tableRows = MATA_PELAJARAN.map(subjek => {
                 const dataSubjek = data.analisisSubjek[subjek];
+                // Map grade counts to table cells
                 const gradeCounts = Object.values(dataSubjek.kiraanGred).map(count => `<td class="px-4 py-3 text-center">${count}</td>`).join('');
                 return `
-                    <tr class="border-b border-gray-700 hover:bg-gray-600/50">
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition duration-150 ease-in-out">
                         <td class="px-4 py-3 font-medium text-white">${subjek}</td>
                         ${gradeCounts}
                         <td class="px-4 py-3 text-right font-bold text-amber-400">${dataSubjek.gpmp.toFixed(2)}</td>
@@ -158,37 +346,60 @@
                 `;
             }).join('');
 
+            // Generate table headers for grades
             const gradeHeaders = Object.keys(WARNA_GRED).map(g => `<th class="px-4 py-3 text-center">${g}</th>`).join('');
 
+            // Update the analysis container with the generated HTML
             analysisContainer.innerHTML = `
-                <div class="bg-gray-800 rounded-xl p-6 mb-8 shadow-lg">
-                    <h2 class="text-2xl font-semibold text-white mb-4">Ringkasan Kelas: ${kelasSelect.value} (${tarikhSelect.value})</h2>
+                <div class="bg-gray-700 rounded-xl p-6 mb-8 shadow-xl border border-gray-600">
+                    <h2 class="text-2xl font-semibold text-white mb-4 text-center">Ringkasan Kelas: ${kelasSelect.value} (${tarikhSelect.value})</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                        <div class="bg-gray-700 p-4 rounded-lg"><p class="text-sm text-gray-400">Nama Guru Kelas</p><p class="text-xl font-bold text-cyan-400">${data.namaGuru}</p></div>
-                        <div class="bg-gray-700 p-4 rounded-lg"><p class="text-sm text-gray-400">Bilangan Murid</p><p class="text-xl font-bold text-cyan-400">${data.bilanganMurid}</p></div>
+                        <div class="bg-gray-800 p-4 rounded-lg border border-gray-600">
+                            <p class="text-sm text-gray-400">Nama Guru Kelas</p>
+                            <p class="text-xl font-bold text-cyan-400">${data.namaGuru}</p>
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-lg border border-gray-600">
+                            <p class="text-sm text-gray-400">Bilangan Murid</p>
+                            <p class="text-xl font-bold text-cyan-400">${data.bilanganMurid}</p>
+                        </div>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-                        <h3 class="text-xl font-semibold text-white mb-4">Analisis GPMP & Gred</h3>
-                        <div class="overflow-x-auto">
+                    <div class="bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
+                        <h3 class="text-xl font-semibold text-white mb-4">Analisis GPMP & Gred Mengikut Mata Pelajaran</h3>
+                        <div class="overflow-x-auto rounded-lg border border-gray-600">
                             <table class="w-full text-sm text-left text-gray-300">
-                                <thead class="text-xs text-gray-400 uppercase bg-gray-700"><tr><th class="px-4 py-3">Mata Pelajaran</th>${gradeHeaders}<th class="px-4 py-3 text-right">GPMP</th></tr></thead>
-                                <tbody>${tableRows}</tbody>
+                                <thead class="text-xs text-gray-400 uppercase bg-gray-800">
+                                    <tr>
+                                        <th class="px-4 py-3">Mata Pelajaran</th>
+                                        ${gradeHeaders}
+                                        <th class="px-4 py-3 text-right">GPMP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRows}
+                                </tbody>
                             </table>
                         </div>
                     </div>
-                    <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-                        <h3 class="text-xl font-semibold text-white mb-4">Carta GPMP Mengikut Mata Pelajaran</h3><p class="text-sm text-gray-400 mb-4">(GPMP lebih rendah adalah lebih baik)</p>
-                        <canvas id="barChart"></canvas>
+                    <div class="bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold text-white mb-4">Carta GPMP Mengikut Mata Pelajaran</h3>
+                            <p class="text-sm text-gray-400 mb-4">(GPMP lebih rendah adalah lebih baik)</p>
+                        </div>
+                        <div class="flex-grow flex items-center justify-center max-h-[500px] overflow-hidden">
+                            <canvas id="barChart"></canvas>
+                        </div>
                     </div>
                 </div>
             `;
             
-            // Create Bar Chart
+            // Prepare data for the bar chart
             const barChartData = MATA_PELAJARAN.map(subjek => data.analisisSubjek[subjek].gpmp);
             const barCtx = document.getElementById('barChart').getContext('2d');
+            // Destroy previous chart instance if it exists
             if (chartInstances.bar) chartInstances.bar.destroy();
+            // Create a new bar chart
             chartInstances.bar = new Chart(barCtx, {
                 type: 'bar',
                 data: {
@@ -196,120 +407,440 @@
                     datasets: [{
                         label: 'GPMP',
                         data: barChartData,
-                        backgroundColor: '#2DD4BF',
+                        backgroundColor: '#2DD4BF', // Tailwind's teal-400
                         borderColor: '#2DD4BF',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        borderRadius: 5 // Add rounded corners to bars
                     }]
                 },
                 options: {
-                    indexAxis: 'y',
+                    indexAxis: 'y', // Horizontal bars
+                    responsive: true,
+                    maintainAspectRatio: false, // Allow canvas to resize freely
                     scales: {
-                        x: { beginAtZero: true, max: 6, grid: { color: '#4A5568' }, ticks: { color: '#9CA3AF' } },
-                        y: { grid: { color: '#4A5568' }, ticks: { color: '#9CA3AF' } }
+                        x: { 
+                            beginAtZero: true, 
+                            max: 6, // GPMP scale from 0 to 6
+                            grid: { color: '#4A5568', drawBorder: false }, // Darker grid lines
+                            ticks: { color: '#9CA3AF' } // Lighter tick labels
+                        },
+                        y: { 
+                            grid: { color: '#4A5568', drawBorder: false }, 
+                            ticks: { 
+                                color: '#9CA3AF',
+                                autoSkip: true, // Enable auto-skipping of labels
+                                maxRotation: 0, // Prevent label rotation
+                                minRotation: 0
+                            } 
+                        }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: { 
+                        legend: { display: false }, // Hide legend
+                        tooltip: {
+                            backgroundColor: 'rgba(31, 41, 55, 0.9)', // Darker tooltip background
+                            titleColor: '#E5E7EB', // Lighter title color
+                            bodyColor: '#D1D5DB', // Lighter body color
+                            borderColor: '#4B5563',
+                            borderWidth: 1,
+                            cornerRadius: 5
+                        }
+                    }
                 }
             });
         };
 
+        /**
+         * Renders the "Single Subject" view for the main analysis tab, displaying detailed analysis for a chosen subject,
+         * including GPMP, grade distribution (pie chart), and a list of student marks.
+         * @param {object} data - The analyzed data for the selected date and class.
+         * @param {Array<object>} dataMurid - The raw student data for the selected date and class.
+         * @param {string} subjek - The specific subject selected.
+         */
         const renderSingleSubjectView = (data, dataMurid, subjek) => {
             const dataSubjek = data.analisisSubjek[subjek];
+            // Generate HTML for grade summary boxes
             const gredRingkasan = Object.entries(dataSubjek.kiraanGred).map(([gred, kiraan]) => `
-                <div class="bg-gray-700 p-4 rounded-lg">
+                <div class="bg-gray-800 p-4 rounded-lg border border-gray-600">
                     <p class="text-sm text-gray-400">Bilangan Gred ${gred}</p>
                     <p class="text-2xl font-bold" style="color:${WARNA_GRED[gred]}">${kiraan}</p>
                 </div>
             `).join('');
             
+            // Generate table rows for each student's mark in the selected subject
             const senaraiMuridRows = dataMurid.map(murid => {
-                 const { gred } = dapatkanGred(murid[subjek]);
-                 return `
-                    <tr class="border-b border-gray-700 hover:bg-gray-600/50">
+                // Ensure the subject key exists and has a value before processing
+                const markahSubjek = murid[subjek];
+                const { gred } = dapatkanGred(markahSubjek);
+                return `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition duration-150 ease-in-out">
                         <td class="px-4 py-3 font-medium text-white">${murid['Nama Murid 学生姓名']}</td>
-                        <td class="px-4 py-3 text-center">${murid[subjek] || 'N/A'}</td>
+                        <td class="px-4 py-3 text-center">${markahSubjek || 'N/A'}</td>
                         <td class="px-4 py-3 text-center font-bold" style="color:${WARNA_GRED[gred]}">${gred}</td>
                     </tr>
-                 `;
+                `;
             }).join('');
 
+            // Update the analysis container with the generated HTML
             analysisContainer.innerHTML = `
-                <div class="bg-gray-800 rounded-xl p-6 mb-8 shadow-lg">
-                    <h2 class="text-2xl font-semibold text-white mb-4">Analisis Terperinci: ${subjek}</h2>
-                    <p class="text-gray-400 mb-4">Kelas: ${kelasSelect.value} | Tarikh: ${tarikhSelect.value}</p>
+                <div class="bg-gray-700 rounded-xl p-6 mb-8 shadow-xl border border-gray-600">
+                    <h2 class="text-2xl font-semibold text-white mb-4 text-center">Analisis Terperinci: ${subjek}</h2>
+                    <p class="text-gray-400 mb-4 text-center">Kelas: ${kelasSelect.value} | Tarikh: ${tarikhSelect.value}</p>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div class="bg-gray-700 p-4 rounded-lg"><p class="text-sm text-gray-400">GPMP</p><p class="text-2xl font-bold text-amber-400">${dataSubjek.gpmp.toFixed(2)}</p></div>
+                        <div class="bg-gray-800 p-4 rounded-lg border border-gray-600">
+                            <p class="text-sm text-gray-400">GPMP</p>
+                            <p class="text-2xl font-bold text-amber-400">${dataSubjek.gpmp.toFixed(2)}</p>
+                        </div>
                         ${gredRingkasan}
+                    </div>
+                    <button id="generate-analysis-btn" class="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        ✨ Jana Analisis & Cadangan ✨
+                    </button>
+                    <div id="llm-analysis-output" class="mt-6 bg-gray-800 p-4 rounded-lg border border-gray-600 hidden">
+                        <p class="text-gray-400 text-sm mb-2">Analisis AI:</p>
+                        <div id="llm-analysis-text" class="text-gray-300 prose prose-invert max-w-none"></div>
+                        <div id="llm-analysis-loader" class="flex items-center justify-center mt-4 hidden">
+                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mr-3"></div>
+                            <p class="text-purple-400">Menjana analisis...</p>
+                        </div>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                    <div class="bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600 flex flex-col justify-between">
                         <h3 class="text-xl font-semibold text-white mb-4">Taburan Gred (%)</h3>
-                        <canvas id="pieChart"></canvas>
+                        <div class="flex-grow flex items-center justify-center">
+                            <canvas id="pieChart"></canvas>
+                        </div>
                     </div>
-                    <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                    <div class="bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
                         <h3 class="text-xl font-semibold text-white mb-4">Senarai Markah Murid</h3>
-                        <div class="overflow-y-auto max-h-80">
+                        <div class="overflow-y-auto max-h-80 rounded-lg border border-gray-600">
                             <table class="w-full text-sm text-left text-gray-300">
-                                <thead class="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0"><tr><th class="px-4 py-3">Nama Murid</th><th class="px-4 py-3 text-center">Markah</th><th class="px-4 py-3 text-center">Gred</th></tr></thead>
-                                <tbody>${senaraiMuridRows}</tbody>
+                                <thead class="text-xs text-gray-400 uppercase bg-gray-800 sticky top-0">
+                                    <tr>
+                                        <th class="px-4 py-3">Nama Murid</th>
+                                        <th class="px-4 py-3 text-center">Markah</th>
+                                        <th class="px-4 py-3 text-center">Gred</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${senaraiMuridRows}
+                                </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             `;
             
-            // Create Pie Chart
+            // Prepare data for the pie chart
             const pieChartData = {
                 labels: Object.keys(dataSubjek.kiraanGred),
                 datasets: [{
                     label: 'Bilangan Murid',
                     data: Object.values(dataSubjek.kiraanGred),
-                    backgroundColor: Object.values(WARNA_GRED),
-                    hoverOffset: 4
+                    backgroundColor: Object.values(WARNA_GRED), // Use predefined colors for grades
+                    hoverOffset: 8, // Increase hover offset for better interaction
+                    borderWidth: 2,
+                    borderColor: '#111827' // Border color to match background
                 }]
             };
             const pieCtx = document.getElementById('pieChart').getContext('2d');
+            // Destroy previous chart instance if it exists
             if(chartInstances.pie) chartInstances.pie.destroy();
+            // Create a new pie chart
             chartInstances.pie = new Chart(pieCtx, {
                 type: 'pie',
                 data: pieChartData,
                 options: {
                     responsive: true,
-                    plugins: { legend: { position: 'top', labels: { color: '#9CA3AF' } } }
+                    maintainAspectRatio: false, // Allow canvas to resize freely
+                    plugins: { 
+                        legend: { 
+                            position: 'top', 
+                            labels: { 
+                                color: '#9CA3AF', // Lighter legend labels
+                                font: { size: 14 } // Slightly larger font for readability
+                            } 
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                            titleColor: '#E5E7EB',
+                            bodyColor: '#D1D5DB',
+                            borderColor: '#4B5563',
+                            borderWidth: 1,
+                            cornerRadius: 5
+                        }
+                    }
+                }
+            });
+
+            // Add event listener for the new LLM button
+            document.getElementById('generate-analysis-btn').addEventListener('click', () => {
+                generateLlmAnalysis(subjek, kelasSelect.value, tarikhSelect.value, dataSubjek.gpmp, dataSubjek.kiraanGred);
+            });
+        };
+
+        /**
+         * Renders the "Overall Comparison" view.
+         * Allows comparing GPMP and grade distribution for all subjects between two selected date/class combinations.
+         */
+        const renderOverallComparisonView = () => {
+            const tarikh1 = compOverallTarikh1Select.value;
+            const kelas1 = compOverallKelas1Select.value;
+            const tarikh2 = compOverallTarikh2Select.value;
+            const kelas2 = compOverallKelas2Select.value;
+
+            if (!tarikh1 || !kelas1 || !tarikh2 || !kelas2) {
+                overallComparisonContentContainer.innerHTML = `
+                    <div class="col-span-full bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
+                        <h3 class="text-xl font-semibold text-white mb-4">Perbandingan Keseluruhan</h3>
+                        <p class="text-gray-400 text-center">Sila pilih dua set tarikh dan kelas untuk membuat perbandingan.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const data1 = dataAnalisis[tarikh1]?.[kelas1];
+            const data2 = dataAnalisis[tarikh2]?.[kelas2];
+
+            if (!data1 || !data2) {
+                overallComparisonContentContainer.innerHTML = `
+                    <div class="col-span-full bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
+                        <h3 class="text-xl font-semibold text-white mb-4">Perbandingan Keseluruhan</h3>
+                        <p class="text-red-400 text-center">Data tidak tersedia untuk salah satu atau kedua-dua pilihan yang dipilih. Sila semak semula pilihan anda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Build Table
+            const gradeHeaders = Object.keys(WARNA_GRED).map(g => `<th class="px-4 py-3 text-center">${g}</th>`).join('');
+            const tableHeader = `
+                <tr>
+                    <th rowspan="2" class="px-4 py-3">Mata Pelajaran</th>
+                    <th colspan="${Object.keys(WARNA_GRED).length + 1}" class="px-4 py-3 text-center bg-gray-600 rounded-tl-lg">Pilihan 1 (${tarikh1}, ${kelas1})</th>
+                    <th colspan="${Object.keys(WARNA_GRED).length + 1}" class="px-4 py-3 text-center bg-gray-600 rounded-tr-lg">Pilihan 2 (${tarikh2}, ${kelas2})</th>
+                </tr>
+                <tr>
+                    <th class="px-4 py-3 text-right">GPMP</th>
+                    ${gradeHeaders}
+                    <th class="px-4 py-3 text-right">GPMP</th>
+                    ${gradeHeaders}
+                </tr>
+            `;
+
+            const tableRows = MATA_PELAJARAN.map(subjek => {
+                const dataSubjek1 = data1.analisisSubjek[subjek];
+                const dataSubjek2 = data2.analisisSubjek[subjek];
+
+                const gradeCounts1 = Object.values(dataSubjek1.kiraanGred).map(count => `<td class="px-4 py-3 text-center">${count}</td>`).join('');
+                const gradeCounts2 = Object.values(dataSubjek2.kiraanGred).map(count => `<td class="px-4 py-3 text-center">${count}</td>`).join('');
+
+                return `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                        <td class="px-4 py-3 font-medium text-white">${subjek}</td>
+                        <td class="px-4 py-3 text-right font-bold text-amber-400">${dataSubjek1.gpmp.toFixed(2)}</td>
+                        ${gradeCounts1}
+                        <td class="px-4 py-3 text-right font-bold text-amber-400">${dataSubjek2.gpmp.toFixed(2)}</td>
+                        ${gradeCounts2}
+                    </tr>
+                `;
+            }).join('');
+
+            overallComparisonContentContainer.innerHTML = `
+                <div class="bg-gray-700 rounded-xl p-6 mb-8 shadow-xl border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Ringkasan Perbandingan Mata Pelajaran</h3>
+                    <div class="overflow-x-auto rounded-lg border border-gray-600">
+                        <table class="w-full text-sm text-left text-gray-300">
+                            <thead class="text-xs text-gray-400 uppercase bg-gray-800">
+                                ${tableHeader}
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="overall-comparison-gpmp-chart-container" class="bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Carta Perbandingan GPMP Keseluruhan</h3>
+                    <div class="overflow-x-auto"> <!-- Added overflow-x-auto here -->
+                        <canvas id="overallComparisonGpmpChart"></canvas>
+                    </div>
+                </div>
+            `;
+
+            // Build Chart (Grouped Bar Chart for GPMP)
+            const chartLabels = MATA_PELAJARAN;
+            const gpmpData1 = MATA_PELAJARAN.map(subjek => data1.analisisSubjek[subjek].gpmp);
+            const gpmpData2 = MATA_PELAJARAN.map(subjek => data2.analisisSubjek[subjek].gpmp);
+
+            // Re-query the canvas element after innerHTML update
+            const chartCanvas = document.getElementById('overallComparisonGpmpChart');
+            const ctx = chartCanvas.getContext('2d');
+            if (chartInstances.overallComparisonGpmp) chartInstances.overallComparisonGpmp.destroy();
+            chartInstances.overallComparisonGpmp = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [
+                        {
+                            label: `GPMP (${tarikh1}, ${kelas1})`,
+                            data: gpmpData1,
+                            backgroundColor: '#2DD4BF', // Teal
+                            borderColor: '#2DD4BF',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        },
+                        {
+                            label: `GPMP (${tarikh2}, ${kelas2})`,
+                            data: gpmpData2,
+                            backgroundColor: '#60A5FA', // Blue
+                            borderColor: '#60A5FA',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 6,
+                            title: {
+                                display: true,
+                                text: 'GPMP (Lebih Rendah Lebih Baik)',
+                                color: '#9CA3AF'
+                            },
+                            grid: { color: '#4A5568', drawBorder: false },
+                            ticks: { color: '#9CA3AF' }
+                        },
+                        x: {
+                            grid: { color: '#4A5568', drawBorder: false },
+                            ticks: { 
+                                color: '#9CA3AF',
+                                autoSkip: true, // Enable auto-skipping of labels
+                                maxRotation: 45, // Allow some rotation if needed
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { color: '#9CA3AF' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                            titleColor: '#E5E7EB',
+                            bodyColor: '#D1D5DB',
+                            borderColor: '#4B5563',
+                            borderWidth: 1,
+                            cornerRadius: 5
+                        }
+                    }
                 }
             });
         };
+
+        /**
+         * Generates performance analysis and suggestions using the Gemini API.
+         * @param {string} subject - The subject name.
+         * @param {string} className - The class name.
+         * @param {string} date - The date of the exam.
+         * @param {number} gpmp - The GPMP score for the subject.
+         * @param {object} gradeCounts - Object containing counts for each grade (A, B, C, D, E, F).
+         */
+        const generateLlmAnalysis = async (subject, className, date, gpmp, gradeCounts) => {
+            const llmOutputDiv = document.getElementById('llm-analysis-output');
+            const llmTextDiv = document.getElementById('llm-analysis-text');
+            const llmLoaderDiv = document.getElementById('llm-analysis-loader');
+
+            llmOutputDiv.classList.remove('hidden'); // Show the output container
+            llmTextDiv.innerHTML = ''; // Clear previous content
+            llmLoaderDiv.classList.remove('hidden'); // Show loader
+
+            // Construct the prompt for the LLM
+            let prompt = `Sebagai penganalisis pendidikan, berikan analisis prestasi dan cadangan penambahbaikan untuk mata pelajaran ${subject} bagi kelas ${className} pada tarikh ${date}. GPMP adalah ${gpmp.toFixed(2)}. Taburan gred adalah seperti berikut: `;
+            for (const grade in gradeCounts) {
+                prompt += `${grade}:${gradeCounts[grade]}, `;
+            }
+            prompt = prompt.slice(0, -2) + `. Fokus pada kekuatan, kelemahan, dan langkah-langkah praktikal yang boleh diambil oleh guru atau pelajar.`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    llmTextDiv.innerHTML = text; // Display the LLM's response
+                } else {
+                    llmTextDiv.innerHTML = '<p class="text-red-400">Gagal menjana analisis. Tiada respons yang sah daripada AI.</p>';
+                    console.error("Unexpected LLM response structure:", result);
+                }
+            } catch (error) {
+                llmTextDiv.innerHTML = `<p class="text-red-400">Ralat semasa menghubungi AI: ${error.message}. Sila cuba lagi.</p>`;
+                console.error("Error calling Gemini API:", error);
+            } finally {
+                llmLoaderDiv.classList.add('hidden'); // Hide loader
+            }
+        };
         
         // --- MAIN DATA FETCHING AND PROCESSING ---
+        /**
+         * Initializes the application by fetching CSV data, parsing it,
+         * performing analysis, and then rendering the dashboard.
+         */
         const initApp = async () => {
             try {
+                // Fetch the CSV data from the specified URL
                 const response = await fetch(CSV_URL);
                 if (!response.ok) throw new Error(`Ralat HTTP! Status: ${response.status}`);
                 const csvText = await response.text();
                 
+                // Parse CSV text into an array of objects
                 const baris = csvText.trim().split('\n');
-                const header = baris[0].split(',').map(h => h.trim());
-                const dataMurid = baris.slice(1).map(row => {
+                const header = baris[0].split(',').map(h => h.trim()); // Extract and trim headers
+                const dataMuridMentah = baris.slice(1).map(row => {
                     const nilai = row.split(',');
+                    // Map values to header keys to create an object for each row
                     return header.reduce((obj, nextKey, index) => {
-                        obj[nextKey] = nilai[index] ? nilai[index].trim() : '';
+                        obj[nextKey] = nilai[index] ? nilai[index].trim() : ''; // Handle missing values
                         return obj;
                     }, {});
                 });
                 
-                const dataPerTarikhDanKelas = dataMurid.reduce((acc, murid) => {
+                // Organize raw data by date and class
+                const dataPerTarikhDanKelas = dataMuridMentah.reduce((acc, murid) => {
                     const tarikh = murid['Tarikh 日期'];
                     const namaKelas = murid['Kelas 班级'];
+                    // Skip rows with missing date or class
                     if (!tarikh || !namaKelas) return acc;
+
                     if (!acc[tarikh]) acc[tarikh] = {};
                     if (!acc[tarikh][namaKelas]) {
                         acc[tarikh][namaKelas] = { murid: [], namaGuru: murid['Nama Guru Kelas 级任老师姓名'] };
                     }
-                    acc[tarikh][namaKelas].murid.push(murid);
+                    acc[tarikh][namaKelas].murid.push(murid); // Add student data to the respective class
                     return acc;
                 }, {});
-                dataMentah = dataPerTarikhDanKelas;
+                dataMentah = dataPerTarikhDanKelas; // Store raw organized data
                 
+                // Perform detailed analysis for each date and class
                 const analisisPenuh = {};
                 for (const tarikh in dataPerTarikhDanKelas) {
                     analisisPenuh[tarikh] = {};
@@ -317,34 +848,49 @@
                         const kelas = dataPerTarikhDanKelas[tarikh][namaKelas];
                         const bilanganMurid = kelas.murid.length;
                         const analisisSubjek = {};
+
                         MATA_PELAJARAN.forEach(subjek => {
                             const kiraanGred = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
                             let jumlahSkorGred = 0;
+                            let validMuridCount = 0; // Count students with valid scores for GPMP calculation
+
                             kelas.murid.forEach(murid => {
-                                const { gred, nilai } = dapatkanGred(murid[subjek]);
-                                kiraanGred[gred]++;
-                                jumlahSkorGred += nilai;
+                                // Check if the subject mark exists and is a valid number
+                                const markah = murid[subjek];
+                                if (markah !== undefined && markah !== null && markah !== '') {
+                                    const { gred, nilai } = dapatkanGred(markah);
+                                    kiraanGred[gred]++;
+                                    jumlahSkorGred += nilai;
+                                    validMuridCount++;
+                                } else {
+                                    // If mark is missing or invalid, count as 'F' for grade distribution but not for GPMP
+                                    kiraanGred['F']++;
+                                }
                             });
-                            analisisSubjek[subjek] = { kiraanGred, gpmp: bilanganMurid > 0 ? (jumlahSkorGred / bilanganMurid) : 0 };
+                            // Calculate GPMP only if there are valid student scores
+                            analisisSubjek[subjek] = { kiraanGred, gpmp: validMuridCount > 0 ? (jumlahSkorGred / validMuridCount) : 6 }; // Default to 6 (F) if no valid scores
                         });
                         analisisPenuh[tarikh][namaKelas] = { analisisSubjek, bilanganMurid, namaGuru: kelas.namaGuru };
                     }
                 }
-                dataAnalisis = analisisPenuh;
+                dataAnalisis = analisisPenuh; // Store the fully analyzed data
                 
+                // Hide loader and show dashboard content
                 loader.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
 
+                // Initial rendering of filters and dashboard content
                 renderFilters();
                 renderDashboard();
 
             } catch (error) {
                 console.error("Gagal memuatkan atau memproses data:", error);
-                showError("Tidak dapat memuatkan data peperiksaan. Sila pastikan pautan CSV adalah betul dan boleh diakses.");
+                showError("Tidak dapat memuatkan data peperiksaan. Sila pastikan pautan CSV adalah betul dan boleh diakses. Ralat: " + error.message);
             }
         };
         
         // --- EVENT LISTENERS ---
+        // Main Analysis Tab Listeners
         tarikhSelect.addEventListener('change', () => {
             updateKelasFilter();
             renderDashboard();
@@ -355,7 +901,18 @@
         });
         subjekSelect.addEventListener('change', renderDashboard);
 
+        // Tab Button Listeners
+        tabMainAnalysis.addEventListener('click', () => showTab('main-analysis'));
+        tabOverallComparison.addEventListener('click', () => showTab('overall-comparison')); // New tab listener
+
+        // Overall Comparison Tab Filter Listeners
+        compOverallTarikh1Select.addEventListener('change', renderDashboard);
+        compOverallKelas1Select.addEventListener('change', renderDashboard);
+        compOverallTarikh2Select.addEventListener('change', renderDashboard);
+        compOverallKelas2Select.addEventListener('change', renderDashboard);
+
         // --- INITIALIZE ---
+        // Call the initialization function when the script loads
         initApp();
     </script>
 
