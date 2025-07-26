@@ -34,6 +34,18 @@
         .tab-button.active {
             @apply bg-blue-600 text-white;
         }
+        /* Sticky table header for the first column */
+        .sticky-col {
+            position: -webkit-sticky; /* For Safari */
+            position: sticky;
+            left: 0;
+            background-color: #1f2937; /* bg-gray-800 */
+            z-index: 10; /* Ensure it stays on top of scrolling content */
+        }
+        /* Adjust z-index for the main table header to be above sticky column header */
+        thead th {
+            z-index: 20;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
@@ -64,6 +76,7 @@
         <div class="flex flex-wrap justify-center gap-2 mb-8 border-b border-gray-700 pb-4">
             <button id="tab-main-analysis" class="tab-button active px-5 py-2 rounded-lg font-medium text-sm transition duration-200 ease-in-out bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Analisis Utama</button>
             <button id="tab-overall-comparison" class="tab-button px-5 py-2 rounded-lg font-medium text-sm transition duration-200 ease-in-out bg-gray-700 text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Perbandingan Keseluruhan</button>
+            <button id="tab-gpmp-difference-comparison" class="tab-button px-5 py-2 rounded-lg font-medium text-sm transition duration-200 ease-in-out bg-gray-700 text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Perbezaan GPMP</button>
         </div>
 
         <!-- Tab Content Containers -->
@@ -100,11 +113,15 @@
                 <div class="bg-gray-700 p-4 rounded-lg border border-gray-600">
                     <h3 class="text-xl font-semibold text-white mb-4">Pilihan Pertama</h3>
                     <div>
-                        <label for="comp-overall-tarikh-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh 1:</label>
+                        <label for="comp-overall-tarikh-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh:</label>
                         <select id="comp-overall-tarikh-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
                     </div>
                     <div class="mt-4">
-                        <label for="comp-overall-kelas-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas 1:</label>
+                        <label for="comp-overall-tahun-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tahun:</label>
+                        <select id="comp-overall-tahun-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-overall-kelas-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas:</label>
                         <select id="comp-overall-kelas-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
                     </div>
                 </div>
@@ -112,17 +129,64 @@
                 <div class="bg-gray-700 p-4 rounded-lg border border-gray-600">
                     <h3 class="text-xl font-semibold text-white mb-4">Pilihan Kedua</h3>
                     <div>
-                        <label for="comp-overall-tarikh-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh 2:</label>
+                        <label for="comp-overall-tarikh-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh:</label>
                         <select id="comp-overall-tarikh-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
                     </div>
                     <div class="mt-4">
-                        <label for="comp-overall-kelas-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas 2:</label>
+                        <label for="comp-overall-tahun-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tahun:</label>
+                        <select id="comp-overall-tahun-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-overall-kelas-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas:</label>
                         <select id="comp-overall-kelas-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
                     </div>
                 </div>
             </div>
 
             <div id="overall-comparison-content-container">
+                <!-- Comparison table and charts will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- New GPMP Difference Comparison Tab Content -->
+        <div id="gpmp-difference-comparison-tab-content" class="tab-content hidden">
+            <h2 class="text-2xl font-semibold text-white mb-4">Perbezaan GPMP</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Pilihan Pertama -->
+                <div class="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Pilihan Pertama</h3>
+                    <div>
+                        <label for="comp-gpmp-diff-tarikh-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh:</label>
+                        <select id="comp-gpmp-diff-tarikh-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-gpmp-diff-tahun-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tahun:</label>
+                        <select id="comp-gpmp-diff-tahun-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-gpmp-diff-kelas-1-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas:</label>
+                        <select id="comp-gpmp-diff-kelas-1-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                </div>
+                <!-- Pilihan Kedua -->
+                <div class="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Pilihan Kedua</h3>
+                    <div>
+                        <label for="comp-gpmp-diff-tarikh-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tarikh:</label>
+                        <select id="comp-gpmp-diff-tarikh-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-gpmp-diff-tahun-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Tahun:</label>
+                        <select id="comp-gpmp-diff-tahun-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                    <div class="mt-4">
+                        <label for="comp-gpmp-diff-kelas-2-select" class="block text-sm font-medium text-gray-300 mb-2">Pilih Kelas:</label>
+                        <select id="comp-gpmp-diff-kelas-2-select" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 transition"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gpmp-difference-content-container">
                 <!-- Comparison table and charts will be dynamically inserted here -->
             </div>
         </div>
@@ -146,7 +210,8 @@
         let chartInstances = {
             bar: null,
             pie: null,
-            overallComparisonGpmp: null // Only overall comparison chart instance remaining
+            overallComparisonGpmp: null, // Overall comparison chart instance
+            gpmpDifferenceChart: null // New chart instance for GPMP difference
         };
         // Keeps track of the currently active tab
         let currentTab = 'main-analysis';
@@ -168,15 +233,28 @@
         const tabOverallComparison = document.getElementById('tab-overall-comparison');
         const overallComparisonTabContent = document.getElementById('overall-comparison-tab-content');
         const compOverallTarikh1Select = document.getElementById('comp-overall-tarikh-1-select');
+        const compOverallTahun1Select = document.getElementById('comp-overall-tahun-1-select'); 
         const compOverallKelas1Select = document.getElementById('comp-overall-kelas-1-select');
         const compOverallTarikh2Select = document.getElementById('comp-overall-tarikh-2-select');
+        const compOverallTahun2Select = document.getElementById('comp-overall-tahun-2-select'); 
         const compOverallKelas2Select = document.getElementById('comp-overall-kelas-2-select');
         const overallComparisonContentContainer = document.getElementById('overall-comparison-content-container');
+
+        // GPMP Difference Comparison Tab Elements
+        const tabGpmpDifferenceComparison = document.getElementById('tab-gpmp-difference-comparison');
+        const gpmpDifferenceComparisonTabContent = document.getElementById('gpmp-difference-comparison-tab-content');
+        const compGpmpDiffTarikh1Select = document.getElementById('comp-gpmp-diff-tarikh-1-select');
+        const compGpmpDiffTahun1Select = document.getElementById('comp-gpmp-diff-tahun-1-select');
+        const compGpmpDiffKelas1Select = document.getElementById('comp-gpmp-diff-kelas-1-select');
+        const compGpmpDiffTarikh2Select = document.getElementById('comp-gpmp-diff-tarikh-2-select');
+        const compGpmpDiffTahun2Select = document.getElementById('comp-gpmp-diff-tahun-2-select');
+        const compGpmpDiffKelas2Select = document.getElementById('comp-gpmp-diff-kelas-2-select');
+        const gpmpDifferenceContentContainer = document.getElementById('gpmp-difference-content-container');
+
 
         // Tab Buttons
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabMainAnalysis = document.getElementById('tab-main-analysis');
-        // Removed: tabSubjectComparison, tabDateComparison, tabClassComparison
 
         // --- UTILITY FUNCTIONS ---
         /**
@@ -195,6 +273,19 @@
             if (skor >= 35) return { gred: 'D', nilai: 4 };
             if (skor >= 20) return { gred: 'E', nilai: 5 };
             return { gred: 'F', nilai: 6 };
+        };
+
+        /**
+         * Extracts the year from a class name (e.g., "1M" -> "Tahun 1").
+         * @param {string} kelasName - The class name string.
+         * @returns {string} The year string (e.g., "Tahun 1") or "Lain-lain" if no match.
+         */
+        const getTahunFromKelas = (kelasName) => {
+            const match = kelasName.match(/^(\d+)/); // Matches digits at the beginning of the string
+            if (match && match[1]) {
+                return `Tahun ${match[1]}`;
+            }
+            return 'Lain-lain'; // Default for classes that don't fit the pattern
         };
 
         /**
@@ -235,27 +326,45 @@
 
         // --- RENDER FUNCTIONS ---
         /**
-         * Populates the date filter dropdowns with available dates from the `dataAnalisis`.
-         * Then, it triggers the update for the class filter.
+         * Populates the date, year, and class filter dropdowns with available data.
          */
         const renderFilters = () => {
             const senaraiTarikh = Object.keys(dataAnalisis).sort();
-            const senaraiKelas = Object.keys(dataAnalisis[senaraiTarikh[0]] || {}).sort(); // Get classes from the first date
+            const allKelas = new Set();
+            for (const tarikh in dataAnalisis) {
+                for (const kelas in dataAnalisis[tarikh]) {
+                    allKelas.add(kelas);
+                }
+            }
+            const senaraiKelasUnik = Array.from(allKelas).sort();
+            const senaraiTahunUnik = Array.from(new Set(senaraiKelasUnik.map(getTahunFromKelas))).sort();
 
             // Main Analysis Tab Filters
             tarikhSelect.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
             updateKelasFilter(); // Update class filter for main analysis
 
-            // Overall Comparison
+            // Overall Comparison Filters
             compOverallTarikh1Select.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
-            compOverallKelas1Select.innerHTML = senaraiKelas.map(k => `<option value="${k}">${k}</option>`).join('');
+            compOverallTahun1Select.innerHTML = senaraiTahunUnik.map(t => `<option value="${t}">${t}</option>`).join('');
+            updateOverallKelasFilters(compOverallKelas1Select, compOverallTarikh1Select.value, compOverallTahun1Select.value);
+
             compOverallTarikh2Select.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
-            compOverallKelas2Select.innerHTML = senaraiKelas.map(k => `<option value="${k}">${k}</option>`).join('');
+            compOverallTahun2Select.innerHTML = senaraiTahunUnik.map(t => `<option value="${t}">${t}</option>`).join('');
+            updateOverallKelasFilters(compOverallKelas2Select, compOverallTarikh2Select.value, compOverallTahun2Select.value);
+
+            // GPMP Difference Comparison Filters
+            compGpmpDiffTarikh1Select.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
+            compGpmpDiffTahun1Select.innerHTML = senaraiTahunUnik.map(t => `<option value="${t}">${t}</option>`).join('');
+            updateOverallKelasFilters(compGpmpDiffKelas1Select, compGpmpDiffTarikh1Select.value, compGpmpDiffTahun1Select.value);
+
+            compGpmpDiffTarikh2Select.innerHTML = senaraiTarikh.map(t => `<option value="${t}">${t}</option>`).join('');
+            compGpmpDiffTahun2Select.innerHTML = senaraiTahunUnik.map(t => `<option value="${t}">${t}</option>`).join('');
+            updateOverallKelasFilters(compGpmpDiffKelas2Select, compGpmpDiffTarikh2Select.value, compGpmpDiffTahun2Select.value);
         };
 
         /**
-         * Updates the class filter dropdown based on the currently selected date in the main analysis tab.
-         * If no classes are available for the selected date, disables the class and subject filters.
+         * Updates the class filter dropdown for the main analysis tab based on the selected date.
+         * If no classes are available, disables the class and subject filters.
          */
         const updateKelasFilter = () => {
             const tarikhDipilih = tarikhSelect.value;
@@ -271,6 +380,27 @@
                 subjekSelect.innerHTML = '';
                 subjekSelect.disabled = true;
             }
+        };
+
+        /**
+         * Updates a specific class filter dropdown based on the selected date and year.
+         * Adds a "Semua Kelas" option if a year is selected.
+         * @param {HTMLSelectElement} kelasSelectElement - The class select element to update.
+         * @param {string} tarikhDipilih - The selected date.
+         * @param {string} tahunDipilih - The selected year (e.g., "Tahun 1").
+         */
+        const updateOverallKelasFilters = (kelasSelectElement, tarikhDipilih, tahunDipilih) => {
+            const availableClassesForDate = Object.keys(dataAnalisis[tarikhDipilih] || {}).sort();
+            const filteredClasses = availableClassesForDate.filter(kelas => getTahunFromKelas(kelas) === tahunDipilih);
+
+            let optionsHtml = '<option value="Semua Kelas">Semua Kelas</option>'; // Add "All Classes" option
+            if (filteredClasses.length > 0) {
+                optionsHtml += filteredClasses.map(k => `<option value="${k}">${k}</option>`).join('');
+                kelasSelectElement.disabled = false;
+            } else {
+                kelasSelectElement.disabled = true;
+            }
+            kelasSelectElement.innerHTML = optionsHtml;
         };
 
         /**
@@ -315,9 +445,74 @@
                 case 'overall-comparison':
                     renderOverallComparisonView();
                     break;
+                case 'gpmp-difference-comparison':
+                    renderGpmpDifferenceComparisonView();
+                    break;
                 default:
                     break;
             }
+        };
+
+        /**
+         * Aggregates data for all classes within a given year and date.
+         * @param {string} tarikh - The selected date.
+         * @param {string} tahun - The selected year (e.g., "Tahun 1").
+         * @returns {object|null} Aggregated data for the year, or null if no data.
+         */
+        const getAggregatedDataForYear = (tarikh, tahun) => {
+            if (!dataAnalisis[tarikh]) return null;
+
+            const classesInYear = Object.keys(dataAnalisis[tarikh]).filter(kelas => getTahunFromKelas(kelas) === tahun);
+            
+            if (classesInYear.length === 0) return null;
+
+            const aggregatedAnalisisSubjek = {};
+            let totalStudents = 0;
+            let firstGuruName = ''; // Take the guru name from the first class found
+
+            MATA_PELAJARAN.forEach(subjek => {
+                const combinedKiraanGred = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+                let combinedJumlahSkorGred = 0;
+                let combinedValidMuridCount = 0;
+
+                classesInYear.forEach(kelas => {
+                    const classData = dataAnalisis[tarikh][kelas];
+                    if (classData && dataMentah[tarikh][kelas]) { // Ensure dataMentah[tarikh][kelas] exists
+                        const subjectData = classData.analisisSubjek[subjek];
+                        for (const gred in subjectData.kiraanGred) {
+                            combinedKiraanGred[gred] += subjectData.kiraanGred[gred];
+                        }
+                        
+                        // Aggregate raw scores for accurate GPMP calculation
+                        const rawStudentsForSubject = dataMentah[tarikh][kelas].murid.filter(m => m[subjek] !== undefined && m[subjek] !== null && m[subjek] !== '');
+                        rawStudentsForSubject.forEach(murid => {
+                            const { nilai } = dapatkanGred(murid[subjek]);
+                            combinedJumlahSkorGred += nilai;
+                            combinedValidMuridCount++;
+                        });
+
+                        if (!firstGuruName && classData.namaGuru) {
+                            firstGuruName = classData.namaGuru;
+                        }
+                    }
+                });
+                
+                aggregatedAnalisisSubjek[subjek] = {
+                    kiraanGred: combinedKiraanGred,
+                    gpmp: combinedValidMuridCount > 0 ? (combinedJumlahSkorGred / combinedValidMuridCount) : 6
+                };
+            });
+
+            // Calculate total students for the year
+            classesInYear.forEach(kelas => {
+                totalStudents += dataAnalisis[tarikh][kelas].bilanganMurid;
+            });
+
+            return {
+                analisisSubjek: aggregatedAnalisisSubjek,
+                bilanganMurid: totalStudents,
+                namaGuru: firstGuruName // Or a combined string of guru names
+            };
         };
 
         /**
@@ -326,12 +521,6 @@
          * @param {object} data - The analyzed data for the selected date and class.
          */
         const renderAllSubjectsView = (data) => {
-            // Calculate dynamic height for the bar chart container, allowing Chart.js to scale within it
-            // A base height plus a factor for each subject to ensure all labels are visible without internal scrolling
-            const baseHeight = 200; // Minimum height for the chart area
-            const heightPerSubject = 30; // Approximate height needed per subject bar (including padding)
-            const calculatedMaxHeight = baseHeight + (MATA_PELAJARAN.length * heightPerSubject);
-
             // Generate table rows for each subject
             const tableRows = MATA_PELAJARAN.map(subjek => {
                 const dataSubjek = data.analisisSubjek[subjek];
@@ -581,28 +770,41 @@
 
         /**
          * Renders the "Overall Comparison" view.
-         * Allows comparing GPMP and grade distribution for all subjects between two selected date/class combinations.
+         * Allows comparing GPMP and grade distribution for all subjects between two selected date/class/year combinations.
          */
         const renderOverallComparisonView = () => {
             const tarikh1 = compOverallTarikh1Select.value;
-            const kelas1 = compOverallKelas1Select.value;
+            const tahun1 = compOverallTahun1Select.value;
+            const kelas1 = compOverallKelas1Select.value; // This will be "Semua Kelas" or a specific class
             const tarikh2 = compOverallTarikh2Select.value;
-            const kelas2 = compOverallKelas2Select.value;
+            const tahun2 = compOverallTahun2Select.value;
+            const kelas2 = compOverallKelas2Select.value; // This will be "Semua Kelas" or a specific class
 
-            if (!tarikh1 || !kelas1 || !tarikh2 || !kelas2) {
+            if (!tarikh1 || !tahun1 || !kelas1 || !tarikh2 || !tahun2 || !kelas2) {
                 overallComparisonContentContainer.innerHTML = `
                     <div class="col-span-full bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
                         <h3 class="text-xl font-semibold text-white mb-4">Perbandingan Keseluruhan</h3>
-                        <p class="text-gray-400 text-center">Sila pilih dua set tarikh dan kelas untuk membuat perbandingan.</p>
+                        <p class="text-gray-400 text-center">Sila pilih dua set tarikh, tahun, dan kelas untuk membuat perbandingan.</p>
                     </div>
                 `;
                 return;
             }
 
-            const data1 = dataAnalisis[tarikh1]?.[kelas1];
-            const data2 = dataAnalisis[tarikh2]?.[kelas2];
+            let dataOption1, dataOption2;
 
-            if (!data1 || !data2) {
+            if (kelas1 === "Semua Kelas") {
+                dataOption1 = getAggregatedDataForYear(tarikh1, tahun1);
+            } else {
+                dataOption1 = dataAnalisis[tarikh1]?.[kelas1];
+            }
+
+            if (kelas2 === "Semua Kelas") {
+                dataOption2 = getAggregatedDataForYear(tarikh2, tahun2);
+            } else {
+                dataOption2 = dataAnalisis[tarikh2]?.[kelas2];
+            }
+
+            if (!dataOption1 || !dataOption2) {
                 overallComparisonContentContainer.innerHTML = `
                     <div class="col-span-full bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
                         <h3 class="text-xl font-semibold text-white mb-4">Perbandingan Keseluruhan</h3>
@@ -612,39 +814,59 @@
                 return;
             }
 
-            // Build Table
-            const gradeHeaders = Object.keys(WARNA_GRED).map(g => `<th class="px-4 py-3 text-center">${g}</th>`).join('');
+            // Determine labels for the table/chart based on selection (Class or Year)
+            const label1 = kelas1 === "Semua Kelas" ? `${tahun1} (${tarikh1})` : `${kelas1} (${tarikh1})`;
+            const label2 = kelas2 === "Semua Kelas" ? `${tahun2} (${tarikh2})` : `${kelas2} (${tarikh2})`;
+
+
+            // Build Transposed Table
+            const subjectHeaders = MATA_PELAJARAN.map(subjek => `<th class="px-4 py-3 text-center">${subjek}</th>`).join('');
+
             const tableHeader = `
                 <tr>
-                    <th rowspan="2" class="px-4 py-3">Mata Pelajaran</th>
-                    <th colspan="${Object.keys(WARNA_GRED).length + 1}" class="px-4 py-3 text-center bg-gray-600 rounded-tl-lg">Pilihan 1 (${tarikh1}, ${kelas1})</th>
-                    <th colspan="${Object.keys(WARNA_GRED).length + 1}" class="px-4 py-3 text-center bg-gray-600 rounded-tr-lg">Pilihan 2 (${tarikh2}, ${kelas2})</th>
-                </tr>
-                <tr>
-                    <th class="px-4 py-3 text-right">GPMP</th>
-                    ${gradeHeaders}
-                    <th class="px-4 py-3 text-right">GPMP</th>
-                    ${gradeHeaders}
+                    <th class="px-4 py-3 sticky-col">Kategori</th>
+                    ${subjectHeaders}
                 </tr>
             `;
 
-            const tableRows = MATA_PELAJARAN.map(subjek => {
-                const dataSubjek1 = data1.analisisSubjek[subjek];
-                const dataSubjek2 = data2.analisisSubjek[subjek];
+            let tableBodyRows = '';
 
-                const gradeCounts1 = Object.values(dataSubjek1.kiraanGred).map(count => `<td class="px-4 py-3 text-center">${count}</td>`).join('');
-                const gradeCounts2 = Object.values(dataSubjek2.kiraanGred).map(count => `<td class="px-4 py-3 text-center">${count}</td>`).join('');
+            // Row for GPMP Pilihan 1
+            let gpmpRow1 = `<td class="px-4 py-3 font-medium text-white sticky-col">GPMP (${label1})</td>`;
+            MATA_PELAJARAN.forEach(subjek => {
+                const gpmp = dataOption1.analisisSubjek[subjek]?.gpmp?.toFixed(2) || 'N/A';
+                gpmpRow1 += `<td class="px-4 py-3 text-center font-bold text-amber-400">${gpmp}</td>`;
+            });
+            tableBodyRows += `<tr class="border-b border-gray-700 hover:bg-gray-700/50">${gpmpRow1}</tr>`;
 
-                return `
-                    <tr class="border-b border-gray-700 hover:bg-gray-700/50">
-                        <td class="px-4 py-3 font-medium text-white">${subjek}</td>
-                        <td class="px-4 py-3 text-right font-bold text-amber-400">${dataSubjek1.gpmp.toFixed(2)}</td>
-                        ${gradeCounts1}
-                        <td class="px-4 py-3 text-right font-bold text-amber-400">${dataSubjek2.gpmp.toFixed(2)}</td>
-                        ${gradeCounts2}
-                    </tr>
-                `;
-            }).join('');
+            // Rows for Grades Pilihan 1
+            Object.keys(WARNA_GRED).forEach(gred => {
+                let gradeRow = `<td class="px-4 py-3 font-medium text-white sticky-col">Gred ${gred} (${label1})</td>`;
+                MATA_PELAJARAN.forEach(subjek => {
+                    const count = dataOption1.analisisSubjek[subjek]?.kiraanGred[gred] || 0;
+                    gradeRow += `<td class="px-4 py-3 text-center" style="color:${WARNA_GRED[gred]}">${count}</td>`;
+                });
+                tableBodyRows += `<tr class="border-b border-gray-700 hover:bg-gray-700/50">${gradeRow}</tr>`;
+            });
+
+            // Row for GPMP Pilihan 2
+            let gpmpRow2 = `<td class="px-4 py-3 font-medium text-white sticky-col">GPMP (${label2})</td>`;
+            MATA_PELAJARAN.forEach(subjek => {
+                const gpmp = dataOption2.analisisSubjek[subjek]?.gpmp?.toFixed(2) || 'N/A';
+                gpmpRow2 += `<td class="px-4 py-3 text-center font-bold text-amber-400">${gpmp}</td>`;
+            });
+            tableBodyRows += `<tr class="border-b border-gray-700 hover:bg-gray-700/50">${gpmpRow2}</tr>`;
+
+            // Rows for Grades Pilihan 2
+            Object.keys(WARNA_GRED).forEach(gred => {
+                let gradeRow = `<td class="px-4 py-3 font-medium text-white sticky-col">Gred ${gred} (${label2})</td>`;
+                MATA_PELAJARAN.forEach(subjek => {
+                    const count = dataOption2.analisisSubjek[subjek]?.kiraanGred[gred] || 0;
+                    gradeRow += `<td class="px-4 py-3 text-center" style="color:${WARNA_GRED[gred]}">${count}</td>`;
+                });
+                tableBodyRows += `<tr class="border-b border-gray-700 hover:bg-gray-700/50">${gradeRow}</tr>`;
+            });
+
 
             overallComparisonContentContainer.innerHTML = `
                 <div class="bg-gray-700 rounded-xl p-6 mb-8 shadow-xl border border-gray-600">
@@ -655,7 +877,7 @@
                                 ${tableHeader}
                             </thead>
                             <tbody>
-                                ${tableRows}
+                                ${tableBodyRows}
                             </tbody>
                         </table>
                     </div>
@@ -670,8 +892,8 @@
 
             // Build Chart (Grouped Bar Chart for GPMP)
             const chartLabels = MATA_PELAJARAN;
-            const gpmpData1 = MATA_PELAJARAN.map(subjek => data1.analisisSubjek[subjek].gpmp);
-            const gpmpData2 = MATA_PELAJARAN.map(subjek => data2.analisisSubjek[subjek].gpmp);
+            const gpmpData1 = MATA_PELAJARAN.map(subjek => dataOption1.analisisSubjek[subjek].gpmp);
+            const gpmpData2 = MATA_PELAJARAN.map(subjek => dataOption2.analisisSubjek[subjek].gpmp);
 
             // Re-query the canvas element after innerHTML update
             const chartCanvas = document.getElementById('overallComparisonGpmpChart');
@@ -683,7 +905,7 @@
                     labels: chartLabels,
                     datasets: [
                         {
-                            label: `GPMP (${tarikh1}, ${kelas1})`,
+                            label: `GPMP (${label1})`,
                             data: gpmpData1,
                             backgroundColor: '#2DD4BF', // Teal
                             borderColor: '#2DD4BF',
@@ -691,7 +913,7 @@
                             borderRadius: 5
                         },
                         {
-                            label: `GPMP (${tarikh2}, ${kelas2})`,
+                            label: `GPMP (${label2})`,
                             data: gpmpData2,
                             backgroundColor: '#60A5FA', // Blue
                             borderColor: '#60A5FA',
@@ -745,6 +967,181 @@
         };
 
         /**
+         * Renders the "GPMP Difference Comparison" view.
+         * Shows the difference in GPMP for each subject between two selected options.
+         */
+        const renderGpmpDifferenceComparisonView = () => {
+            const tarikh1 = compGpmpDiffTarikh1Select.value;
+            const tahun1 = compGpmpDiffTahun1Select.value;
+            const kelas1 = compGpmpDiffKelas1Select.value;
+            const tarikh2 = compGpmpDiffTarikh2Select.value;
+            const tahun2 = compGpmpDiffTahun2Select.value;
+            const kelas2 = compGpmpDiffKelas2Select.value;
+
+            if (!tarikh1 || !tahun1 || !kelas1 || !tarikh2 || !tahun2 || !kelas2) {
+                gpmpDifferenceContentContainer.innerHTML = `
+                    <div class="col-span-full bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
+                        <h3 class="text-xl font-semibold text-white mb-4">Perbezaan GPMP</h3>
+                        <p class="text-gray-400 text-center">Sila pilih dua set tarikh, tahun, dan kelas untuk melihat perbezaan GPMP.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let dataOption1, dataOption2;
+
+            if (kelas1 === "Semua Kelas") {
+                dataOption1 = getAggregatedDataForYear(tarikh1, tahun1);
+            } else {
+                dataOption1 = dataAnalisis[tarikh1]?.[kelas1];
+            }
+
+            if (kelas2 === "Semua Kelas") {
+                dataOption2 = getAggregatedDataForYear(tarikh2, tahun2);
+            } else {
+                dataOption2 = dataAnalisis[tarikh2]?.[kelas2];
+            }
+
+            if (!dataOption1 || !dataOption2) {
+                gpmpDifferenceContentContainer.innerHTML = `
+                    <div class="col-span-full bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
+                        <h3 class="text-xl font-semibold text-white mb-4">Perbezaan GPMP</h3>
+                        <p class="text-red-400 text-center">Data tidak tersedia untuk salah satu atau kedua-dua pilihan yang dipilih. Sila semak semula pilihan anda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const label1 = kelas1 === "Semua Kelas" ? `${tahun1} (${tarikh1})` : `${kelas1} (${tarikh1})`;
+            const label2 = kelas2 === "Semua Kelas" ? `${tahun2} (${tarikh2})` : `${kelas2} (${tarikh2})`;
+
+            let tableRows = '';
+            const gpmpDifferences = [];
+
+            MATA_PELAJARAN.forEach(subjek => {
+                const gpmp1 = dataOption1.analisisSubjek[subjek]?.gpmp || 6; // Default to 6 if no data
+                const gpmp2 = dataOption2.analisisSubjek[subjek]?.gpmp || 6; // Default to 6 if no data
+                const diff = (gpmp1 - gpmp2).toFixed(2); // Difference: Option1 - Option2
+                gpmpDifferences.push(parseFloat(diff));
+
+                const diffColor = diff < 0 ? 'text-green-400' : (diff > 0 ? 'text-red-400' : 'text-gray-400');
+                const diffArrow = diff < 0 ? '↓' : (diff > 0 ? '↑' : '');
+
+                tableRows += `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                        <td class="px-4 py-3 font-medium text-white">${subjek}</td>
+                        <td class="px-4 py-3 text-center">${gpmp1.toFixed(2)}</td>
+                        <td class="px-4 py-3 text-center">${gpmp2.toFixed(2)}</td>
+                        <td class="px-4 py-3 text-center font-bold ${diffColor}">${diff} ${diffArrow}</td>
+                    </tr>
+                `;
+            });
+
+            gpmpDifferenceContentContainer.innerHTML = `
+                <div class="bg-gray-700 rounded-xl p-6 mb-8 shadow-xl border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Jadual Perbezaan GPMP</h3>
+                    <p class="text-gray-400 text-sm mb-4">Perbezaan = GPMP (${label1}) - GPMP (${label2})</p>
+                    <div class="overflow-x-auto rounded-lg border border-gray-600">
+                        <table class="w-full text-sm text-left text-gray-300">
+                            <thead class="text-xs text-gray-400 uppercase bg-gray-800">
+                                <tr>
+                                    <th class="px-4 py-3">Mata Pelajaran</th>
+                                    <th class="px-4 py-3 text-center">GPMP (${label1})</th>
+                                    <th class="px-4 py-3 text-center">GPMP (${label2})</th>
+                                    <th class="px-4 py-3 text-center">Perbezaan GPMP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="gpmp-difference-chart-container" class="bg-gray-700 rounded-xl p-6 shadow-xl border border-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Carta Perbezaan GPMP</h3>
+                    <div class="overflow-x-auto">
+                        <canvas id="gpmpDifferenceChart"></canvas>
+                    </div>
+                </div>
+            `;
+
+            const chartCanvas = document.getElementById('gpmpDifferenceChart');
+            const ctx = chartCanvas.getContext('2d');
+            if (chartInstances.gpmpDifferenceChart) chartInstances.gpmpDifferenceChart.destroy();
+            chartInstances.gpmpDifferenceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: MATA_PELAJARAN,
+                    datasets: [{
+                        label: `Perbezaan GPMP (${label1} vs ${label2})`,
+                        data: gpmpDifferences,
+                        backgroundColor: gpmpDifferences.map(diff => diff < 0 ? '#10B981' : (diff > 0 ? '#EF4444' : '#6B7280')), // Green for improvement, Red for decline, Gray for no change
+                        borderColor: gpmpDifferences.map(diff => diff < 0 ? '#059669' : (diff > 0 ? '#DC2626' : '#4B5563')),
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false, // Allow negative values for difference
+                            title: {
+                                display: true,
+                                text: 'Perbezaan GPMP (Negatif = Lebih Baik)',
+                                color: '#9CA3AF'
+                            },
+                            grid: { color: '#4A5568', drawBorder: false },
+                            ticks: { color: '#9CA3AF' }
+                        },
+                        x: {
+                            grid: { color: '#4A5568', drawBorder: false },
+                            ticks: { 
+                                color: '#9CA3AF',
+                                autoSkip: true,
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { color: '#9CA3AF' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                            titleColor: '#E5E7EB',
+                            bodyColor: '#D1D5DB',
+                            borderColor: '#4B5563',
+                            borderWidth: 1,
+                            cornerRadius: 5,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2);
+                                        if (context.parsed.y < 0) {
+                                            label += ' (Peningkatan)';
+                                        } else if (context.parsed.y > 0) {
+                                            label += ' (Penurunan)';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        /**
          * Generates performance analysis and suggestions using the Gemini API.
          * @param {string} subject - The subject name.
          * @param {string} className - The class name.
@@ -772,7 +1169,7 @@
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
                 const payload = { contents: chatHistory };
-                const apiKey = "AIzaSyCkYo49fiS_adwtc-XMuMkfsMaGP2KbM4E"; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
@@ -903,13 +1300,50 @@
 
         // Tab Button Listeners
         tabMainAnalysis.addEventListener('click', () => showTab('main-analysis'));
-        tabOverallComparison.addEventListener('click', () => showTab('overall-comparison')); // New tab listener
+        tabOverallComparison.addEventListener('click', () => showTab('overall-comparison')); 
+        tabGpmpDifferenceComparison.addEventListener('click', () => showTab('gpmp-difference-comparison')); // New tab listener
 
         // Overall Comparison Tab Filter Listeners
-        compOverallTarikh1Select.addEventListener('change', renderDashboard);
+        compOverallTarikh1Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compOverallKelas1Select, compOverallTarikh1Select.value, compOverallTahun1Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
+        compOverallTahun1Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compOverallKelas1Select, compOverallTarikh1Select.value, compOverallTahun1Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
         compOverallKelas1Select.addEventListener('change', renderDashboard);
-        compOverallTarikh2Select.addEventListener('change', renderDashboard);
+
+        compOverallTarikh2Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compOverallKelas2Select, compOverallTarikh2Select.value, compOverallTahun2Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
+        compOverallTahun2Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compOverallKelas2Select, compOverallTarikh2Select.value, compOverallTahun2Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
         compOverallKelas2Select.addEventListener('change', renderDashboard);
+
+        // GPMP Difference Comparison Tab Filter Listeners
+        compGpmpDiffTarikh1Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compGpmpDiffKelas1Select, compGpmpDiffTarikh1Select.value, compGpmpDiffTahun1Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
+        compGpmpDiffTahun1Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compGpmpDiffKelas1Select, compGpmpDiffTarikh1Select.value, compGpmpDiffTahun1Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
+        compGpmpDiffKelas1Select.addEventListener('change', renderDashboard);
+
+        compGpmpDiffTarikh2Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compGpmpDiffKelas2Select, compGpmpDiffTarikh2Select.value, compGpmpDiffTahun2Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
+        compGpmpDiffTahun2Select.addEventListener('change', () => {
+            updateOverallKelasFilters(compGpmpDiffKelas2Select, compGpmpDiffTarikh2Select.value, compGpmpDiffTahun2Select.value);
+            renderDashboard(); // Added renderDashboard call
+        });
+        compGpmpDiffKelas2Select.addEventListener('change', renderDashboard);
 
         // --- INITIALIZE ---
         // Call the initialization function when the script loads
